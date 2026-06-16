@@ -1,0 +1,77 @@
+# vbcc Makefile for Commander Keen Amiga RTG Port
+#
+# Prerequisites:
+#   - vbcc (m68k-amigaos target)
+#   - vlink
+#   - AmigaOS NDK 3.x includes
+#
+# Usage:
+#   make -f Makefile.amiga          # Build
+#   make -f Makefile.amiga clean    # Clean
+#   make -f Makefile.amiga lint     # Quick syntax check
+
+CC      = vbcc
+LD      = vlink
+RM      = rm -f
+
+# Include paths: amiga/ first for wrapper headers, then .. for original sources
+CFLAGS  = -c -I. -I.. -I./sys -cpu=68020 -O2 -amiga -speed -size
+LDFLAGS = -amiga -lvc -lamiga -o keen-amiga.elf
+
+# Amiga port-specific source files
+SRCS_AMIGA = \
+    rtg_driver.c \
+    id_vw.c \
+    id_rf.c \
+    id_in.c \
+    id_sd.c \
+    id_mm.c \
+    id_ca.c \
+    id_us.c \
+    id_us_s.c \
+    main_amiga.c
+
+# Original game source files (compiled with Amiga wrapper headers)
+SRCS_GAME = \
+    ../soft.c \
+    ../gelib.c \
+    ../jam_io.c \
+    ../lzhuf.c \
+    ../kd_act1.c \
+    ../kd_act2.c \
+    ../kd_main.c \
+    ../kd_play.c \
+    ../kd_keen.c \
+    ../kd_demo.c
+
+# Assembly files (commented out - need m68k asm rewrite)
+# SRCS_ASM = \
+#     ../id_rf_a.asm \
+#     ../id_vw_a.asm \
+#     ../id_vw_ac.asm \
+#     ../id_vw_ae.asm \
+#     ../id_us_a.asm
+
+OBJS = $(SRCS_AMIGA:.c=.o) $(SRCS_GAME:.c=.o)
+
+.PHONY: all clean lint
+
+all: keen-amiga.exe
+
+keen-amiga.exe: $(OBJS)
+	$(LD) $(LDFLAGS) $(OBJS)
+	$(RM) keen-amiga.elf 2>/dev/null || true
+	@echo "--- Build complete: keen-amiga.exe ---"
+
+.c.o:
+	$(CC) $(CFLAGS) -o $@ $<
+
+clean:
+	$(RM) *.o $(notdir $(SRCS_GAME:.c=.o)) keen-amiga.exe keen-amiga.elf
+
+lint:
+	@echo "--- Checking source files ---"
+	$(CC) -c $(CFLAGS) -Wall -Wextra rtg_driver.c -o /dev/null 2>&1 || true
+	$(CC) -c $(CFLAGS) -Wall -Wextra id_vw.c -o /dev/null 2>&1 || true
+	$(CC) -c $(CFLAGS) -Wall -Wextra id_in.c -o /dev/null 2>&1 || true
+	@echo "--- Lint complete ---"

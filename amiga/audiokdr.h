@@ -1,0 +1,41 @@
+#ifndef __AUDIOKDR__
+#define __AUDIOKDR__
+
+#define NUMSOUNDS     28
+#define NUMSNDCHUNKS  84
+
+#define KEENWALK1SND      0
+#define KEENWALK2SND      1
+#define JUMPSND           2
+#define LANDSND           3
+#define THROWSND          4
+#define DIVESND           5
+#define GETPOWERSND       6
+#define GETPOINTSSND      7
+#define GETBOMBSND        8
+#define FLOWERPOWERSND    9
+#define UNFLOWERPOWERSND  10
+#define ENTERLEVELSND     11
+#define WAKEUPSND         12
+#define LEVELDONESND      13
+#define NOWAYSND          14
+#define HITHEADSND        15
+#define TATERSWINGSND     16
+#define BOUNCESND         17
+#define EXTRAKEENSND      18
+#define OPENDOORSND       19
+#define THROWBOMBSND      20
+#define BOMBBOOMSND       21
+#define BOOBUSGONESND     22
+#define GETKEYSND         23
+#define GRAPESCREAMSND    24
+#define PLUMMETSND        25
+#define CLICKSND          26
+#define TICKSND           27
+
+#define STARTPCSOUNDS     0
+#define STARTADLIBSOUNDS  28
+#define STARTDIGISOUNDS   56
+#define STARTMUSIC        84
+
+#endif
