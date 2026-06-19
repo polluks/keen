@@ -369,6 +369,7 @@ void ShutdownId (void)
 ==========================
 */
 
+#ifndef __AMIGA__
 void Quit (char *error)
 {
   ShutdownId ();
@@ -381,6 +382,7 @@ void Quit (char *error)
   }
 	exit (0);
 }
+#endif
 
 //===========================================================================
 
@@ -489,6 +491,7 @@ void InitGame (void)
 ==========================
 */
 
+#ifndef __AMIGA__
 void main (void)
 {
 	short i;
@@ -530,4 +533,5 @@ void main (void)
 	DemoLoop();					// DemoLoop calls Quit when everything is done
 	Quit("Demo loop exited???");
 }
+#endif
 

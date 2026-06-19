@@ -573,22 +573,20 @@ void ScanInfoPlane (void)
 
 	memset (lumpneeded,0,sizeof(lumpneeded));
 
-#if 0
+#ifdef __AMIGA__
 	start = mapsegs[2];
-	for (y=0;y<mapheight;y++)
-		for (x=0;x<mapwidth;x++)
-		{
+	for (y = 0; y < mapheight; y++) {
+		mapy = y;
+		for (x = 0; x < mapwidth; x++) {
+			mapx = x;
 			tile = *start++;
 			if (!tile)
 				continue;
+			maptile = tile;
+			HandleInfo();
 		}
-#endif
-
-//
-// This doesn't really need to be in asm.  I thought it was a bottleneck,
-// but I was wrong...
-//
-
+	}
+#else
 	asm	mov	es,[WORD PTR mapsegs+4]
 	asm	xor	si,si
 	asm	mov	[mapy],0
@@ -613,6 +611,7 @@ nothing:
 	asm	inc	[mapy]
 	asm	dec	[mapycount]
 	asm	jnz	yloop
+#endif
 
 	for (i=0;i<NUMLUMPS;i++)
 		if (lumpneeded[i])

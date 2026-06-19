@@ -4,9 +4,10 @@
 #include "id_heads.h"
 #include "audiokdr.h"
 
-#define MAPHEADERLINKED
-#define GRHEADERLINKED
-#define AUDIOHEADERLINKED
+/* Reading headers/dictionaries from files at runtime */
+/* #undef MAPHEADERLINKED */
+/* #undef GRHEADERLINKED */
+/* #undef AUDIOHEADERLINKED */
 
 #define NUMMAPS 30
 

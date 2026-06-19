@@ -29,6 +29,8 @@ void MM_Startup(void)
     mminfo.farheap = 0;
     mminfo.EMSmem = 0;
     mminfo.XMSmem = 0;
+    bufferseg = NULL;
+    MM_GetPtr(&bufferseg, BUFFERSIZE);
 }
 
 void MM_Shutdown(void)

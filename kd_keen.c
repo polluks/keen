@@ -174,94 +174,100 @@ void	FixScoreBox (void)
 ======================
 */
 
-#if GRMODE == EGAGR
-
-void MemDrawChar (int char8,byte far *dest,unsigned width,unsigned planesize)
+void MemDrawChar (int char8, byte far *dest, unsigned width, unsigned planesize)
 {
-asm	mov	si,[char8]
-asm	shl	si,1
-asm	shl	si,1
-asm	shl	si,1
-asm	shl	si,1
-asm	shl	si,1		// index into char 8 segment
+#ifdef __AMIGA__
+    byte *src;
+    int plane;
+    int row;
 
-asm	mov	ds,[WORD PTR grsegs+STARTTILE8*2]
-asm	mov	es,[WORD PTR dest+2]
+    src = (byte *)grsegs[STARTTILE8] + (char8 << 5);
+    for (plane = 0; plane < 4; plane++) {
+        for (row = 0; row < 8; row++) {
+            dest[row * width] = src[row];
+        }
+        dest += planesize;
+        src += 8;
+    }
+#else
+#if GRMODE == EGAGR
+    asm	mov	si,[char8]
+    asm	shl	si,1
+    asm	shl	si,1
+    asm	shl	si,1
+    asm	shl	si,1
+    asm	shl	si,1		// index into char 8 segment
 
-asm	mov	cx,4		// draw four planes
-asm	mov	bx,[width]
-asm	dec	bx
+    asm	mov	ds,[WORD PTR grsegs+STARTTILE8*2]
+    asm	mov	es,[WORD PTR dest+2]
+
+    asm	mov	cx,4		// draw four planes
+    asm	mov	bx,[width]
+    asm	dec	bx
 
 planeloop:
 
-asm	mov	di,[WORD PTR dest]
+    asm	mov	di,[WORD PTR dest]
 
-asm	movsb
-asm	add	di,bx
-asm	movsb
-asm	add	di,bx
-asm	movsb
-asm	add	di,bx
-asm	movsb
-asm	add	di,bx
-asm	movsb
-asm	add	di,bx
-asm	movsb
-asm	add	di,bx
-asm	movsb
-asm	add	di,bx
-asm	movsb
+    asm	movsb
+    asm	add	di,bx
+    asm	movsb
+    asm	add	di,bx
+    asm	movsb
+    asm	add	di,bx
+    asm	movsb
+    asm	add	di,bx
+    asm	movsb
+    asm	add	di,bx
+    asm	movsb
+    asm	add	di,bx
+    asm	movsb
+    asm	add	di,bx
+    asm	movsb
 
-asm	mov	ax,[planesize]
-asm	add	[WORD PTR dest],ax
+    asm	mov	ax,[planesize]
+    asm	add	[WORD PTR dest],ax
 
-asm	loop	planeloop
+    asm	loop	planeloop
 
-asm	mov	ax,ss
-asm	mov	ds,ax
+    asm	mov	ax,ss
+    asm	mov	ds,ax
+#elif GRMODE == CGAGR
+    asm	mov	si,[char8]
+    asm	shl	si,1
+    asm	shl	si,1
+    asm	shl	si,1
+    asm	shl	si,1		// index into char 8 segment
 
-}
+    asm	mov	ds,[WORD PTR grsegs+STARTTILE8*2]
+    asm	mov	es,[WORD PTR dest+2]
+
+    asm	mov	bx,[width]
+    asm	sub	bx,2
+
+    asm	mov	di,[WORD PTR dest]
+
+    asm	movsw
+    asm	add	di,bx
+    asm	movsw
+    asm	add	di,bx
+    asm	movsw
+    asm	add	di,bx
+    asm	movsw
+    asm	add	di,bx
+    asm	movsw
+    asm	add	di,bx
+    asm	movsw
+    asm	add	di,bx
+    asm	movsw
+    asm	add	di,bx
+    asm	movsw
+
+    asm	mov	ax,ss
+    asm	mov	ds,ax
 #endif
-
-#if GRMODE == CGAGR
-void MemDrawChar (int char8,byte far *dest,unsigned width,unsigned planesize)
-{
-asm	mov	si,[char8]
-asm	shl	si,1
-asm	shl	si,1
-asm	shl	si,1
-asm	shl	si,1		// index into char 8 segment
-
-asm	mov	ds,[WORD PTR grsegs+STARTTILE8*2]
-asm	mov	es,[WORD PTR dest+2]
-
-asm	mov	bx,[width]
-asm	sub	bx,2
-
-asm	mov	di,[WORD PTR dest]
-
-asm	movsw
-asm	add	di,bx
-asm	movsw
-asm	add	di,bx
-asm	movsw
-asm	add	di,bx
-asm	movsw
-asm	add	di,bx
-asm	movsw
-asm	add	di,bx
-asm	movsw
-asm	add	di,bx
-asm	movsw
-asm	add	di,bx
-asm	movsw
-
-asm	mov	ax,ss
-asm	mov	ds,ax
-
-	planesize++;		// shut the compiler up
-}
 #endif
+}
 
 
 /*

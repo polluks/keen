@@ -38,6 +38,7 @@ void FreeShape(struct Shape *shape)
 //
 int UnpackEGAShapeToScreen(struct Shape *SHP,int startx,int starty)
 {
+#ifndef __AMIGA__
 	int currenty;
 	signed char n, Rep, far *Src, far *Dst[8], loop, Plane;
 	unsigned int BPR, Height;
@@ -103,7 +104,7 @@ int UnpackEGAShapeToScreen(struct Shape *SHP,int startx,int starty)
 		}
 		currenty++;
 	}
-
+#endif
 	return(0);
 }
 
@@ -205,12 +206,19 @@ void bio_fillbuffer(BufferedIO *bio)
 //
 void SwapLong(long far *Var)
 {
+#ifdef __AMIGA__
+	unsigned char *p = (unsigned char *)Var;
+	unsigned char t;
+	t = p[0]; p[0] = p[3]; p[3] = t;
+	t = p[1]; p[1] = p[2]; p[2] = t;
+#else
 	asm		les	bx,Var
 	asm		mov	ax,[es:bx]
 	asm		xchg	ah,al
 	asm		xchg	ax,[es:bx+2]
 	asm		xchg	ah,al
 	asm 		mov	[es:bx],ax
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -219,10 +227,17 @@ void SwapLong(long far *Var)
 //
 void SwapWord(unsigned int far *Var)
 {
+#ifdef __AMIGA__
+	unsigned char *p = (unsigned char *)Var;
+	unsigned char t = p[0];
+	p[0] = p[1];
+	p[1] = t;
+#else
 	asm		les	bx,Var
 	asm		mov	ax,[es:bx]
 	asm		xchg	ah,al
 	asm		mov	[es:bx],ax
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////

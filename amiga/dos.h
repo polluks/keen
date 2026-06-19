@@ -47,4 +47,13 @@ static __inline int write(int fd, const void *buf, int len)
     return Write((BPTR)fd, (void *)buf, (long)len);
 }
 
+static __inline long filelength(int fd)
+{
+    long pos, size;
+    pos = Seek((BPTR)fd, 0, OFFSET_CURRENT);
+    size = Seek((BPTR)fd, 0, OFFSET_END);
+    Seek((BPTR)fd, pos, OFFSET_BEGINNING);
+    return size;
+}
+
 #endif

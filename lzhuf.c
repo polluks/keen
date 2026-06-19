@@ -50,6 +50,9 @@
 #include <ctype.h>
 #include <alloc.h>
 #include <dos.h>
+#ifdef __AMIGA__
+#include "id_heads.h"
+#endif
 
 #include "lzhuff.h"
 #include "jam_io.h"
