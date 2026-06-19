@@ -15,7 +15,7 @@ LD      = vlink
 RM      = rm -f
 
 # Include paths: amiga/ first for wrapper headers, then .. for original sources
-CFLAGS  = -c -I. -I.. -I./sys -cpu=68020 -O2 -amiga -speed -size
+CFLAGS  = -c -I. -I.. -I./sys -cpu=68020 -O2 -amiga -speed -size -D__AMIGA__
 LDFLAGS = -amiga -lvc -lamiga -o keen-amiga.elf
 
 # Amiga port-specific source files

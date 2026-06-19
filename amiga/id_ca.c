@@ -6,6 +6,14 @@
 #include <fcntl.h>
 #include <io.h>
 
+typedef struct {
+    unsigned bit0, bit1;
+} huffnode;
+
+static huffnode audiohuffman[255];
+static long *audiostarts;
+static int audiohandle = -1;
+
 byte  *tinf;
 int   mapon;
 unsigned *mapsegs[3];
@@ -16,6 +24,41 @@ byte   grneeded[NUMCHUNKS];
 byte   ca_levelbit, ca_levelnum;
 char   *titleptr[8];
 int    profilehandle;
+
+static void CAL_OptimizeNodes(huffnode *table)
+{
+    int i;
+    for (i = 0; i < 255; i++) {
+        if (table[i].bit0 >= 256)
+            table[i].bit0 = (unsigned)(table + (table[i].bit0 - 256));
+        if (table[i].bit1 >= 256)
+            table[i].bit1 = (unsigned)(table + (table[i].bit1 - 256));
+    }
+}
+
+static void CAL_HuffExpand(byte *source, byte *dest, long length, huffnode *hufftable)
+{
+    unsigned bitmask = 1;
+    unsigned node;
+    huffnode *headptr = hufftable + 254;
+    byte *end = dest + length;
+
+    while (dest < end) {
+        node = (unsigned)headptr;
+        while (node >= 256) {
+            if (*source & bitmask)
+                node = ((huffnode *)node)->bit1;
+            else
+                node = ((huffnode *)node)->bit0;
+            bitmask <<= 1;
+            if (!bitmask) {
+                bitmask = 1;
+                source++;
+            }
+        }
+        *dest++ = (byte)node;
+    }
+}
 
 void CAL_ShiftSprite(unsigned segment, unsigned source, unsigned dest,
     unsigned width, unsigned height, unsigned pixshift)
@@ -112,6 +155,8 @@ void CA_RLEWexpand(unsigned huge *source, unsigned huge *dest, long length,
 void CA_Startup(void)
 {
     int i;
+    long length;
+
     mapon = 0;
     for (i = 0; i < NUMCHUNKS; i++) {
         grsegs[i] = NULL;
@@ -123,6 +168,32 @@ void CA_Startup(void)
         mapsegs[i] = NULL;
     ca_levelbit = 1;
     ca_levelnum = 0;
+
+    /* Load audio dictionary (Huffman table) */
+    {
+        int dhandle = open("AUDIODCT.KDR", O_RDONLY | O_BINARY, S_IREAD);
+        if (dhandle != -1) {
+            read(dhandle, audiohuffman, sizeof(audiohuffman));
+            close(dhandle);
+            CAL_OptimizeNodes(audiohuffman);
+        }
+    }
+
+    /* Load audio header (chunk start offsets) */
+    {
+        int hhandle = open("AUDIOHHD.KDR", O_RDONLY | O_BINARY, S_IREAD);
+        if (hhandle != -1) {
+            length = lseek(hhandle, 0, SEEK_END);
+            lseek(hhandle, 0, SEEK_SET);
+            audiostarts = (long *)malloc(length);
+            if (audiostarts)
+                read(hhandle, audiostarts, length);
+            close(hhandle);
+        }
+    }
+
+    /* Open audio data file */
+    audiohandle = open("KDREAMS.AUD", O_RDONLY | O_BINARY, S_IREAD);
 }
 
 void CA_Shutdown(void)
@@ -140,6 +211,10 @@ void CA_Shutdown(void)
         if (mapsegs[i])
             MM_FreePtr((memptr *)&mapsegs[i]);
     }
+    if (audiohandle != -1)
+        close(audiohandle);
+    if (audiostarts)
+        free(audiostarts);
 }
 
 void CA_CacheGrChunk(int chunk)
@@ -157,10 +232,56 @@ void CA_CacheMap(int mapnum)
 
 void CA_CacheAudioChunk(int chunk)
 {
+    long pos, compressed, expanded;
+    byte *source;
+    byte bigbuffer[4096];
+    byte *bigbufferseg = NULL;
+
+    if (chunk < 0 || chunk >= NUMSNDCHUNKS)
+        return;
+
+    if (audiosegs[chunk]) {
+        MM_SetPurge((memptr *)&audiosegs[chunk], 0);
+        return;
+    }
+
+    if (audiohandle == -1 || !audiostarts)
+        return;
+
+    pos = audiostarts[chunk];
+    compressed = audiostarts[chunk + 1] - pos;
+
+    lseek(audiohandle, pos, SEEK_SET);
+
+    if (compressed <= (long)sizeof(bigbuffer)) {
+        CA_FarRead(audiohandle, bigbuffer, compressed);
+        source = bigbuffer;
+    } else {
+        bigbufferseg = (byte *)malloc(compressed);
+        if (!bigbufferseg) return;
+        CA_FarRead(audiohandle, bigbufferseg, compressed);
+        source = bigbufferseg;
+    }
+
+    expanded = *(long *)source;
+    source += 4;
+
+    MM_GetPtr((memptr *)&audiosegs[chunk], expanded);
+    if (audiosegs[chunk])
+        CAL_HuffExpand(source, audiosegs[chunk], expanded, audiohuffman);
+
+    if (bigbufferseg)
+        free(bigbufferseg);
 }
 
 void CA_LoadAllSounds(void)
 {
+    unsigned start, i;
+
+    start = STARTDIGISOUNDS;
+
+    for (i = 0; i < NUMSOUNDS; i++)
+        CA_CacheAudioChunk(start + i);
 }
 
 void CA_UpLevel(void)

@@ -9,6 +9,7 @@ extern void DemoLoop(void);
 void IN_ProcessEvent(UWORD code, int pressed);
 
 static boolean running = true;
+static const char verstag[] = "$VER: Keen Dreams Amiga Port 1.0 (19.6.2026)";
 
 void Quit(char *error)
 {

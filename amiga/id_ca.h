@@ -2,6 +2,7 @@
 #define __ID_CA__
 
 #include "id_heads.h"
+#include "audiokdr.h"
 
 #define MAPHEADERLINKED
 #define GRHEADERLINKED
