@@ -73,9 +73,9 @@ static void CAL_SetupGrFile(void)
     {
         int dhandle = open("EGADICT.KDR", O_RDONLY | O_BINARY, S_IREAD);
         if (dhandle != -1) {
-            read(dhandle, grhuffman, sizeof(grhuffman));
+            if (read(dhandle, grhuffman, sizeof(grhuffman)) == sizeof(grhuffman))
+                CAL_OptimizeNodes(grhuffman);
             close(dhandle);
-            CAL_OptimizeNodes(grhuffman);
         }
     }
 
@@ -84,8 +84,12 @@ static void CAL_SetupGrFile(void)
         length = lseek(hhandle, 0, SEEK_END);
         lseek(hhandle, 0, SEEK_SET);
         grstarts = (long *)malloc(length);
-        if (grstarts)
-            read(hhandle, grstarts, length);
+        if (grstarts) {
+            if (read(hhandle, grstarts, length) != length) {
+                free(grstarts);
+                grstarts = NULL;
+            }
+        }
         close(hhandle);
     }
 
@@ -108,7 +112,6 @@ static void CAL_SetupGrFile(void)
             if (!buf) continue;
             CA_FarRead(grhandle, buf, compsize);
 
-            explen = *(long *)buf;
             if (i == 0) {
                 MM_GetPtr((memptr *)&pictable, NUMPICS * sizeof(pictabletype));
                 if (pictable)
@@ -138,9 +141,9 @@ static void CAL_SetupMapFile(void)
     {
         int dhandle = open("MAPDICT.KDR", O_RDONLY | O_BINARY, S_IREAD);
         if (dhandle != -1) {
-            read(dhandle, maphuffman, sizeof(maphuffman));
+            if (read(dhandle, maphuffman, sizeof(maphuffman)) == sizeof(maphuffman))
+                CAL_OptimizeNodes(maphuffman);
             close(dhandle);
-            CAL_OptimizeNodes(maphuffman);
         }
     }
 
@@ -148,9 +151,11 @@ static void CAL_SetupMapFile(void)
     if (hhandle != -1) {
         length = lseek(hhandle, 0, SEEK_END);
         lseek(hhandle, 0, SEEK_SET);
-        MM_GetPtr((memptr *)&tinf, length);
-        if (tinf)
-            CA_FarRead(hhandle, tinf, length);
+        if (length >= 402) {
+            MM_GetPtr((memptr *)&tinf, length);
+            if (tinf)
+                CA_FarRead(hhandle, tinf, length);
+        }
         close(hhandle);
     }
 
@@ -165,9 +170,9 @@ static void CAL_SetupAudioFile(void)
     {
         int dhandle = open("AUDIODCT.KDR", O_RDONLY | O_BINARY, S_IREAD);
         if (dhandle != -1) {
-            read(dhandle, audiohuffman, sizeof(audiohuffman));
+            if (read(dhandle, audiohuffman, sizeof(audiohuffman)) == sizeof(audiohuffman))
+                CAL_OptimizeNodes(audiohuffman);
             close(dhandle);
-            CAL_OptimizeNodes(audiohuffman);
         }
     }
 
@@ -176,8 +181,13 @@ static void CAL_SetupAudioFile(void)
         length = lseek(hhandle, 0, SEEK_END);
         lseek(hhandle, 0, SEEK_SET);
         audiostarts = (long *)malloc(length);
-        if (audiostarts)
-            read(hhandle, audiostarts, length);
+        if (audiostarts) {
+            if (read(hhandle, audiostarts, length) != length ||
+                length < (NUMSNDCHUNKS + 1) * 4L) {
+                free(audiostarts);
+                audiostarts = NULL;
+            }
+        }
         close(hhandle);
     }
 
@@ -270,8 +280,10 @@ void CA_RLEWexpand(unsigned huge *source, unsigned huge *dest, long length,
         } else {
             count = source[srci++];
             value = source[srci++];
-            for (i = 0; i < count; i++)
+            for (i = 0; i < count; i++) {
+                if (dsti >= length) break;
                 dest[dsti++] = value;
+            }
         }
     }
 }
@@ -423,10 +435,10 @@ void CA_CacheGrChunk(int chunk)
     byte bigbuffer[4096];
     byte *bigbufferseg = NULL;
 
-    grneeded[chunk] |= ca_levelbit;
-
     if (chunk < 0 || chunk >= NUMCHUNKS)
         return;
+
+    grneeded[chunk] |= ca_levelbit;
 
     if (grsegs[chunk]) {
         MM_SetPurge(&grsegs[chunk], 0);
@@ -552,6 +564,8 @@ void CA_CacheMap(int mapnum)
             CAL_HuffExpand(source + 2, (byte *)buf, expanded, maphuffman);
             CA_RLEWexpand(buf + 1, mapsegs[plane], size, rlewtag);
             free(buf);
+        } else {
+            MM_FreePtr((memptr *)&mapsegs[plane]);
         }
 
         if (bigbufferseg)
@@ -614,12 +628,16 @@ void CA_LoadAllSounds(void)
 
 void CA_UpLevel(void)
 {
+    if (ca_levelnum >= 7)
+        Quit("CA_UpLevel: Up past level 7!");
     ca_levelbit <<= 1;
     ca_levelnum++;
 }
 
 void CA_DownLevel(void)
 {
+    if (ca_levelnum == 0)
+        Quit("CA_DownLevel: Down past level 0!");
     ca_levelbit >>= 1;
     ca_levelnum--;
 }

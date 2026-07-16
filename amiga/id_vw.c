@@ -585,6 +585,27 @@ void VW_UpdateScreen(void)
     RTG_Refresh();
 }
 
+void VW_DrawTile8(unsigned x, unsigned y, unsigned tile)
+{
+    byte *s = (byte *)grsegs[STARTTILE8] + tile * 32;
+    int row, col, p, bit;
+    byte c, mask;
+    int dst_x = x * 8;
+    int dst_y = y;
+
+    for (row = 0; row < 8; row++) {
+        for (col = 0; col < 8; col++) {
+            c = 0;
+            mask = 0x80 >> col;
+            for (p = 0; p < 4; p++) {
+                if (s[p * 8 + row] & mask)
+                    c |= (1 << p);
+            }
+            rtg.framebuffer[(dst_y + row) * rtg.bytes_per_row + dst_x + col] = c;
+        }
+    }
+}
+
 void VWB_DrawTile8(int x, int y, int tile)
 {
     x += pansx;
