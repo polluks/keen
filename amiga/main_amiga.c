@@ -8,13 +8,8 @@ extern void InitGame(void);
 extern void DemoLoop(void);
 void IN_ProcessEvent(UWORD code, int pressed);
 
-#define VERSION  1
-#define REVISION 0
-#define STR_(x) #x
-#define STR(x)  STR_(x)
-
 static boolean running = true;
-static const char verstag[] = "$VER: KeenDreams " STR(VERSION) "." STR(REVISION) " (19.6.2026)";
+static const char verstag[] = "$VER: Keen Dreams Amiga Port 1.0 (19.6.2026)";
 
 void Quit(char *error)
 {
