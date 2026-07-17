@@ -1,10 +1,54 @@
 #include "id_heads.h"
 #include "id_ca.h"
 #include "audiokdr.h"
+
+/* Only vbcc/NDK has the full AmigaOS device headers; gcc+gg SDK does not. */
+#ifndef __GNUC__
 #include <devices/timer.h>
 #include <devices/ahi.h>
+#else
+/* Provide minimal struct IORequest for fallback AHI struct.
+   exec/io.h or similar should already provide the real one. */
+#endif
 #include <dos/dos.h>
 #include <proto/exec.h>
+
+/* Fallback defines for SDKs with missing/incomplete device headers */
+#ifndef UNIT_MICRO
+#define UNIT_MICRO 4
+#endif
+#ifndef CMD_READ
+#define CMD_READ 1
+#endif
+#ifndef TRDERTASK
+#define TRDERTASK CMD_READ
+#endif
+#ifndef AHICMD_PLAY
+#define AHICMD_STOP 2
+#define AHICMD_PLAY 3
+#define AHIST_M8S 16
+#define AHINAME "ahi.device"
+struct IOAHIREQ {
+    struct IORequest ior;
+    ULONG ahir_Version;
+    ULONG ahir_Volume;
+    ULONG ahir_Position;
+    ULONG ahir_Frequency;
+    ULONG ahir_Type;
+    APTR  ahir_Address;
+    ULONG ahir_Length;
+    UWORD ahir_Sound;
+    UWORD ahir_Pad;
+    ULONG ahir_Message;
+    ULONG ahir_Flags;
+    ULONG ahir_Pan;
+    ULONG ahir_Samples;
+    ULONG ahir_Volume2;
+    ULONG ahir_Position2;
+    ULONG ahir_Pan2;
+    ULONG ahir_Reserved[4];
+};
+#endif
 #include <string.h>
 #include <stdlib.h>
 

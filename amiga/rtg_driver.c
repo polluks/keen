@@ -4,6 +4,21 @@
 #include <graphics/gfx.h>
 #include <graphics/gfxbase.h>
 #include <graphics/displayinfo.h>
+#include <proto/exec.h>
+#include <proto/intuition.h>
+#include <proto/graphics.h>
+#include <string.h>
+
+/* Fallback timer defines for SDKs missing <devices/timer.h> */
+#ifndef CMD_READ
+#define CMD_READ 1
+#endif
+#ifndef TRDERTASK
+#define TRDERTASK CMD_READ
+#endif
+#ifndef UNIT_VBLANK
+#define UNIT_VBLANK 0
+#endif
 
 #include "rtg_driver.h"
 

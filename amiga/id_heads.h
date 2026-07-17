@@ -37,8 +37,7 @@ typedef unsigned long   longword;
 typedef byte *          Ptr;
 typedef void *          memptr;
 
-typedef struct { int x, y; } Point;
-typedef struct { Point ul, lr; } Rect;
+/* Point and Rect provided by Amiga <graphics/gfx.h> */
 
 #define nil ((void *)0)
 

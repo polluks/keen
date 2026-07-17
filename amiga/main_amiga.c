@@ -3,6 +3,14 @@
 #include <dos/dos.h>
 #include <proto/exec.h>
 
+/* Fallback defines for SDKs missing inputevent.h */
+#ifndef IECODE_QUALIFIER
+#define IECODE_QUALIFIER 0x8000
+#endif
+#ifndef IECODE_UP_PREFIX
+#define IECODE_UP_PREFIX 0x4000
+#endif
+
 extern longword GetTimeCount(void);
 extern void InitGame(void);
 extern void DemoLoop(void);

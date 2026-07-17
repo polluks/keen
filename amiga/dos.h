@@ -7,15 +7,33 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef O_RDONLY
 #define O_RDONLY  MODE_OLDFILE
+#endif
 #define O_BINARY  0
+#ifndef O_WRONLY
 #define O_WRONLY  MODE_NEWFILE
+#endif
+#ifndef O_CREAT
 #define O_CREAT   0
+#endif
+#ifndef O_TRUNC
 #define O_TRUNC   0
+#endif
 
+#ifndef SEEK_SET
 #define SEEK_SET 0
+#endif
+#ifndef SEEK_CUR
 #define SEEK_CUR 1
+#endif
+#ifndef SEEK_END
 #define SEEK_END 2
+#endif
+
+/* Only define I/O wrappers for compilers that lack them (vbcc).
+   For gcc+gg SDK, the system provides open/read/write/close/lseek. */
+#ifndef __GNUC__
 
 static __inline int open(const char *name, int mode, ...)
 {
@@ -46,6 +64,8 @@ static __inline int write(int fd, const void *buf, int len)
 {
     return Write((BPTR)fd, (void *)buf, (long)len);
 }
+
+#endif /* __GNUC__ */
 
 static __inline long filelength(int fd)
 {

@@ -49,7 +49,6 @@ void US_CenterWindow(int w, int h);
 void US_ExitWindow(void);
 void US_ClearWindow(void);
 void US_UpdateCursor(int x, int y);
-void US_CenterWindow(word, word);
 void US_SaveWindow(WindowRec *win);
 void US_RestoreWindow(WindowRec *win);
 void US_DisplayHighScores(void);
