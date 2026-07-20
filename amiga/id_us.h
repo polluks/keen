@@ -53,6 +53,6 @@ void US_SaveWindow(WindowRec *win);
 void US_RestoreWindow(WindowRec *win);
 void US_DisplayHighScores(void);
 void US_CheckHighScore(long score, word other);
-void US_RndT(void);
+int US_RndT(void);
 
 #endif
