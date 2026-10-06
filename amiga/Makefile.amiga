@@ -16,7 +16,7 @@ RM      = rm -f
 
 # Include paths: amiga/ first for wrapper headers, then .. for original sources
 CFLAGS  = -c -I. -I.. -I./sys -cpu=68020 -O2 -amiga -speed -size -D__AMIGA__
-LDFLAGS = -amiga -lvc -lamiga -o keen-amiga.elf
+LDFLAGS = -amiga -lvc -lamiga -o Keen.elf
 
 # Amiga port-specific source files
 SRCS_AMIGA = \
@@ -56,18 +56,18 @@ OBJS = $(SRCS_AMIGA:.c=.o) $(SRCS_GAME:.c=.o)
 
 .PHONY: all clean lint
 
-all: keen-amiga.exe
+all: Keen
 
-keen-amiga.exe: $(OBJS)
+Keen: $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS)
-	$(RM) keen-amiga.elf 2>/dev/null || true
-	@echo "--- Build complete: keen-amiga.exe ---"
+	$(RM) Keen.elf 2>/dev/null || true
+	@echo "--- Build complete: Keen ---"
 
 .c.o:
 	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-	$(RM) *.o $(notdir $(SRCS_GAME:.c=.o)) keen-amiga.exe keen-amiga.elf
+	$(RM) *.o $(notdir $(SRCS_GAME:.c=.o)) Keen Keen.elf
 
 lint:
 	@echo "--- Checking source files ---"
